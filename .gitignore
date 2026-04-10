@@ -3,6 +3,9 @@ __pycache__/
 .env
 *.pyc
 
-# Ignora o output mas mantem a pasta pelas regras de gitkeep
+# Ignora o output mas mantem a pasta
 output/*
 !output/.gitkeep
+
+# NUNCA sobe as questoes reais para o GitHub
+input/*.json
