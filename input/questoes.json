@@ -1,0 +1,13 @@
+[
+  {
+    "id": "q_placeholder",
+    "nome": "Nome de banco de Questao aqui (Utilize para testes)",
+    "tipo": "multipla_escolha",
+    "enunciado": "Digite um enunciado para teste na preview do Moodle.",
+    "alternativas": [
+      { "chave": "a", "texto": "Opçao A" },
+      { "chave": "b", "texto": "Opçao B" }
+    ],
+    "resposta_correta": ["a"]
+  }
+]

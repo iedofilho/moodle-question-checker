@@ -1,0 +1,24 @@
+{
+    "login": {
+        "username_input": "input[name='username']",
+        "password_input": "input[name='password']",
+        "login_button": "button[id='loginbtn']"
+    },
+    "question_bank": {
+        "search_input": "input[name='questionname']",
+        "search_button": "button[type='submit']",
+        "preview_action_icon": "a[title='Pré-visualização'], a[title='Preview']",
+        "question_row": "tr.r0, tr.r1"
+    },
+    "preview_window": {
+        "question_text": ".qtext",
+        "answer_options_container": ".answer",
+        "answer_option": ".d-flex.w-100",
+        "option_label": "label",
+        "option_input": "input[type='radio'], input[type='checkbox']",
+        "submit_button": "input[value='Enviar e finalizar'], input[value='Submit and finish']",
+        "start_again_button": "input[value='Começar de novo'], input[value='Start again']",
+        "feedback_correct_area": ".specificfeedback",
+        "grade_area": ".grade"
+    }
+}

@@ -1,0 +1,2 @@
+id,nome,tipo,status_estrutura,status_funcional,divergencias,erro_execucao,screenshot_inicial,screenshot_correta,screenshot_errada
+q1,Oceano - Exemplo múltipla,multipla_escolha,OK,OK,"[]","",out/q1_inicio.png,out/q1_correta.png,out/q1_errada.png

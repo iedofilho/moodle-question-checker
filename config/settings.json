@@ -1,0 +1,18 @@
+{
+    "timeouts": {
+        "short_ms": 5000,
+        "medium_ms": 15000,
+        "long_ms": 30000
+    },
+    "directories": {
+        "input": "input",
+        "output": "output",
+        "screenshots": "output/screenshots"
+    },
+    "behavior": {
+        "take_screenshots": true,
+        "dry_run": false,
+        "max_retries": 1,
+        "stop_on_first_error": false
+    }
+}

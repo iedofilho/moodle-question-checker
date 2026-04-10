@@ -1,0 +1,38 @@
+[
+  {
+    "id": "q1",
+    "nome": "Oceano - Exemplo múltipla",
+    "tipo": "multipla_escolha",
+    "enunciado": "Qual oceano é o maior do mundo?",
+    "alternativas": [
+      { "chave": "a", "texto": "Oceano Atlântico" },
+      { "chave": "b", "texto": "Oceano Índico" },
+      { "chave": "c", "texto": "Oceano Pacífico" },
+      { "chave": "d", "texto": "Oceano Ártico" }
+    ],
+    "resposta_correta": ["c"]
+  },
+  {
+    "id": "q2",
+    "nome": "Astros - Exemplo múltipla",
+    "tipo": "multipla_escolha",
+    "enunciado": "Qual dos seguintes astros é considerado um planeta anão?",
+    "alternativas": [
+      { "chave": "a", "texto": "Mercúrio" },
+      { "chave": "b", "texto": "Plutão" },
+      { "chave": "c", "texto": "Marte" }
+    ],
+    "resposta_correta": ["b"]
+  },
+  {
+    "id": "q3",
+    "nome": "Sol estrela - Exemplo v/f",
+    "tipo": "verdadeiro_falso",
+    "enunciado": "O sol é uma estrela.",
+    "alternativas": [
+      { "chave": "v", "texto": "Verdadeiro" },
+      { "chave": "f", "texto": "Falso" }
+    ],
+    "resposta_correta": ["v"]
+  }
+]
