@@ -12,13 +12,13 @@ class MoodleActions:
         self.selectors = get_selectors()
         self.envs = get_env_vars()
         
-    def buscar_questao(self, nome_questao: str, context_url: str = None) -> bool:
+    def buscar_questao(self, nome_questao: str, course_id: str = None, context_url: str = None) -> bool:
         """Busca pelo banco de questões do curso correspondente.
          Aviso: no caso real, requer entrar no Banco de Questoes ('/question/edit.php'). 
         """
-        # Para um ambiente generico, assumiremos que se a URL existe no env,
-        # adicionamos a rota /question/edit.php. Caso contrário o usuario terá de configurar.
-        q_url = context_url or urljoin(self.envs["url"], "/question/edit.php")
+        # Adiciona param courseid se ele existir
+        route = f"/question/edit.php?courseid={course_id}" if course_id else "/question/edit.php"
+        q_url = context_url or urljoin(self.envs["url"], route)
         self.page.goto(q_url)
         
         search_sel = self.selectors["question_bank"]["search_input"]

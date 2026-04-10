@@ -11,7 +11,14 @@ def main():
     print("Iniciando Moodle Question Checker...")
     load_dotenv()
     
-    orchestrator = Orchestrator()
+    print("\n==================================")
+    course_id = input("[?] Digite o ID numérico do curso (ex: 53): ").strip()
+    if not course_id.isdigit():
+        print("⚠️ ID inválido! Insira apenas números (ex: 53).")
+        sys.exit(1)
+    print("==================================\n")
+    
+    orchestrator = Orchestrator(course_id=course_id)
     try:
         orchestrator.run()
     except Exception as e:

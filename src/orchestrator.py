@@ -15,7 +15,8 @@ from .report_writer import ReportWriter
 logger = get_logger(__name__)
 
 class Orchestrator:
-    def __init__(self):
+    def __init__(self, course_id: str):
+        self.course_id = course_id
         self.settings = get_settings()
         setup_directories(self.settings)
         self.ss_manager = ScreenshotManager(self.settings["directories"]["screenshots"])
@@ -50,8 +51,8 @@ class Orchestrator:
                 res = ResultadoValidacao(questao_id=q.id, questao_nome=q.nome, tipo=q.tipo)
                 logger.info(f"-- Processando [{q.id}] {q.nome} --")
                 try:
-                    # 1. Busca a questao
-                    btn_prev = actions.buscar_questao(q.nome)
+                    # 1. Busca a questao passando o ID do curso
+                    btn_prev = actions.buscar_questao(q.nome, course_id=self.course_id)
                     if not btn_prev:
                         res.erro_execucao = "Botao preview (lupa) nao encontrado no Banco de Questoes. Cheque search_name."
                         res.status_estrutura = "FALHOU"
