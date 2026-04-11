@@ -24,24 +24,36 @@ class Orchestrator:
         logger.info("Orquestrador inicializado.")
         
     def run(self):
-        # 1. Carregar Arquivo XML
+        # 1. Carregar Arquivo de Entrada
         base_dir = get_project_root()
         input_dir = base_dir / self.settings["directories"]["input"]
-        xml_files = list(input_dir.glob("*.xml"))
         
-        if not xml_files:
-            logger.error("Nenhum arquivo .xml encontrado na pasta input/")
+        input_files = list(input_dir.glob("*.json")) + list(input_dir.glob("*.xml"))
+        
+        if not input_files:
+            logger.error("Nenhum arquivo .json nem .xml encontrado na pasta input/")
             return
             
-        input_file = xml_files[0]
-        logger.info(f"Convertendo arquivo XML da prova... ({input_file.name})")
+        input_file = input_files[0]
+        extensao = input_file.suffix.lower()
+        logger.info(f"Identificado arquivo de base {extensao.upper()}: ({input_file.name})")
         
-        from .xml_parser import parse_moodle_xml
+        questoes = []
         try:
-            questoes = parse_moodle_xml(input_file)
+            if extensao == ".xml":
+                from .xml_parser import parse_moodle_xml
+                questoes = parse_moodle_xml(input_file)
+            elif extensao == ".json":
+                from .schema_validator import validar_questoes_json
+                valido, msg_ou_dados = validar_questoes_json(input_file)
+                if not valido:
+                    logger.error(f"Erro de Schema JSON: {msg_ou_dados}")
+                    return
+                questoes = [Questao.do_dict(q) for q in msg_ou_dados]
+                
             logger.info(f"{len(questoes)} questoes extraidas com sucesso.")
         except Exception as e:
-            logger.error(f"Ocorreu um problema interpretando o XML: {e}")
+            logger.error(f"Ocorreu um problema interpretando o {extensao.upper()}: {e}")
             return
 
         # Inicia ambiente Moodle
