@@ -70,21 +70,25 @@ class Orchestrator:
                 res = ResultadoValidacao(questao_id=q.id, questao_nome=q.nome, tipo=q.tipo)
                 logger.info(f"-- Processando [{q.id}] {q.nome} --")
                 try:
-                    # 1. Busca a questao passando o ID do curso
+                    # 1. Busca a questao
                     btn_prev = actions.buscar_questao(q.nome, course_id=self.course_id)
                     if not btn_prev:
                         res.erro_execucao = "Botao preview (lupa) nao encontrado no Banco de Questoes. Cheque search_name."
                         res.status_estrutura = "FALHOU"
-                        logger.warning(res.erro_execucao)
                         resultados.append(res)
                         continue
                         
-                    # Moodle costuma abrir pop-up pra preview. Precisamos esperar o novo popup.
-                    with client.context.expect_page() as novo_contexto:
-                        btn_prev.click()
+                    # Abre Aba preview real ignorando bugs de JS do Moodle
+                    preview_url = btn_prev.get_attribute("href")
+                    if preview_url and "preview.php" in preview_url:
+                        pg_preview = client.context.new_page()
+                        pg_preview.goto(preview_url)
+                    else:
+                        with client.context.expect_page() as new_page_info:
+                            btn_prev.click(force=True)
+                        pg_preview = new_page_info.value
                         
-                    pg_preview = novo_contexto.value
-                    pg_preview.wait_for_load_state("networkidle")
+                    pg_preview.wait_for_load_state("load")
                     
                     # Salva status cru original
                     res.screenshot_inicial = self.ss_manager.take(pg_preview, f"{q.id}_01_init")

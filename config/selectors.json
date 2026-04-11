@@ -7,8 +7,8 @@
     "question_bank": {
         "search_input": "input[name='questionname']",
         "search_button": "button[type='submit']",
-        "preview_action_icon": "a[title='Pré-visualização'], a[title='Preview']",
-        "question_row": "tr.r0, tr.r1"
+        "preview_action_icon": "a[title*='ré-visualiza'], a[title*='review'], a:has-text('Ver prévia'), a[href*='preview.php']",
+        "question_row": "tr.r0, tr.r1, tr[data-region='question-row'], tr.question-row"
     },
     "preview_window": {
         "question_text": ".qtext",
