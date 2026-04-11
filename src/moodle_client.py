@@ -54,6 +54,10 @@ class MoodleClient:
             # 4. Evita bloquear silenciosamente extensões de segurança do usuário (Kaspersky)
             if "kaspersky-labs.com" in url:
                 return route.continue_()
+                
+            # 5. Permite o Frontend salvar abas abertas e preferencias na sessaõ atual do BD UI
+            if "api/rest/v2" in url or "preferences" in url:
+                return route.continue_()
 
         # BLOQUEIA ESTUDOS, DELETES, SALVAMENTOS NO BANCO ETC
         logger.warning(f"🛡️ GUARDRAIL ATIVADO: Bloqueou alteração externa forçada ({method} {url})")

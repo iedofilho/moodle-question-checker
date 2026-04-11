@@ -28,7 +28,7 @@ class MoodleActions:
         if self.page.locator(search_sel).count() > 0:
             self.page.fill(search_sel, nome_questao)
             self.page.click(btn_sel)
-            self.page.wait_for_load_state("networkidle")
+            self.page.wait_for_timeout(2000) # Evita "networkidle" pendurar a requisição
         
         # Procurar o título pela listagem
         # Preferimos clicar no PREVIEW ('lupa') do exato item
