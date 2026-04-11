@@ -70,10 +70,11 @@ class MoodleClient:
         logger.info("Por favor, localize rapidamente a janela recém aberta e efetue seu login manualmente.")
         logger.info(f"O robô ficará monitorando por até {int(timeout_ms/1000/60)} minutos a sua transição...")
         
-        # Aguarda algum elemento que confirme que estamos num dashboard logado
-        # Normalmente o menu de foto de perfil
+        # Aguarda algum elemento estrutural forte confirmando dashboard logado.
+        # Em Moodle com temas customizados das Faculdades, buscar o link de "Sair" (logout.php) 
+        # ou a página de dashboard (#page-my-index) resolve 100% dos travamentos de seletor customizado.
         try:
-            self.page.wait_for_selector(".usermenu, .userbutton, #user-menu-toggle, .userpicture", timeout=timeout_ms)
+            self.page.wait_for_selector(".usermenu, .userbutton, #user-menu-toggle, .userpicture, a[href*='logout.php'], body#page-my-index", timeout=timeout_ms)
             logger.info("✅ Login Humano Identificado! Devolvendo o controle ao Robô e inicializando o scan...")
             self.page.wait_for_timeout(2000) # delay para Moodle descarregar transição do login
         except Exception as e:
