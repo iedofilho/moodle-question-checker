@@ -28,7 +28,7 @@ class Orchestrator:
         base_dir = get_project_root()
         input_dir = base_dir / self.settings["directories"]["input"]
         
-        input_files = list(input_dir.glob("*.json")) + list(input_dir.glob("*.xml"))
+        input_files = list(input_dir.glob("*.xml")) + list(input_dir.glob("*.json"))
         
         if not input_files:
             logger.error("Nenhum arquivo .json nem .xml encontrado na pasta input/")
@@ -49,7 +49,24 @@ class Orchestrator:
                 if not valido:
                     logger.error(f"Erro de Schema JSON: {msg_ou_dados}")
                     return
-                questoes = [Questao.do_dict(q) for q in msg_ou_dados]
+                import re
+                for q_dados in msg_ou_dados:
+                    q = Questao.do_dict(q_dados)
+                    # HARMONIZADOR INTELIGENTE (JSON -> XML PADRÃO)
+                    # Transmuta "Aula 20 - Questão 1" para "Aula 20 - Fechada 01" / "Aula 20 - Aberta 01"
+                    match_aula = re.search(r'(?i)Aula\s*(\d+)', q.nome)
+                    match_q = re.search(r'(?i)(?:quest..o|aberta|fechada|q)[^\d]*(\d+)', q.nome) or re.search(r'(\d+)$', q.nome)
+                    
+                    if match_aula and match_q:
+                        a_num = str(int(match_aula.group(1))).zfill(2)
+                        q_num = str(int(match_q.group(1))).zfill(2)
+                        
+                        if q.tipo == "aberta":
+                            q.nome = f"Aula {a_num} - Aberta {q_num}"
+                        else:
+                            q.nome = f"Aula {a_num} - Fechada {q_num}"
+                            
+                    questoes.append(q)
                 
             logger.info(f"{len(questoes)} questoes extraidas com sucesso.")
         except Exception as e:
@@ -73,8 +90,9 @@ class Orchestrator:
                     # 1. Busca a questao
                     btn_prev = actions.buscar_questao(q.nome, course_id=self.course_id)
                     if not btn_prev:
-                        res.erro_execucao = "Botao preview (lupa) nao encontrado no Banco de Questoes. Cheque search_name."
+                        res.erro_execucao = "Botao preview não encontrado na tela. A questão existe na pag 1?"
                         res.status_estrutura = "FALHOU"
+                        logger.warning(res.erro_execucao)
                         resultados.append(res)
                         continue
                         
