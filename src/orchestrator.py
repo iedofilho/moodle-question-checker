@@ -52,19 +52,32 @@ class Orchestrator:
                 import re
                 for q_dados in msg_ou_dados:
                     q = Questao.do_dict(q_dados)
-                    # HARMONIZADOR INTELIGENTE (JSON -> XML PADRÃO)
-                    # Transmuta "Aula 20 - Questão 1" para "Aula 20 - Fechada 01" / "Aula 20 - Aberta 01"
+                    # HARMONIZADOR INTELIGENTE (JSON -> Moodle)
+                    # O Moodle da Fundace usa AMBOS os formatos de nome:
+                    #   "Fechada 01 - Aula 20"  (questoes mais antigas)
+                    #   "Aula 20 - Fechada 01"  (questoes mais recentes)
+                    # Aqui geramos todas as variantes para busca flexivel
                     match_aula = re.search(r'(?i)Aula\s*(\d+)', q.nome)
-                    match_q = re.search(r'(?i)(?:quest..o|aberta|fechada|q)[^\d]*(\d+)', q.nome) or re.search(r'(\d+)$', q.nome)
+                    match_q = (re.search(r'(?i)(?:quest[aã]o|aberta|fechada|q)\D*(\d+)', q.nome) 
+                               or re.search(r'(\d+)\s*$', q.nome))
                     
                     if match_aula and match_q:
                         a_num = str(int(match_aula.group(1))).zfill(2)
                         q_num = str(int(match_q.group(1))).zfill(2)
+                        a_raw = str(int(match_aula.group(1)))
+                        tipo_label = "Aberta" if q.tipo == "aberta" else "Fechada"
                         
-                        if q.tipo == "aberta":
-                            q.nome = f"Aula {a_num} - Aberta {q_num}"
-                        else:
-                            q.nome = f"Aula {a_num} - Fechada {q_num}"
+                        # Nome principal (formato mais comum no Moodle)
+                        q.nome = f"{tipo_label} {q_num} - Aula {a_num}"
+                        # Todas as variantes possiveis para busca
+                        q._search_variants = [
+                            f"{tipo_label} {q_num} - Aula {a_num}",      # Fechada 01 - Aula 20
+                            f"Aula {a_num} - {tipo_label} {q_num}",      # Aula 20 - Fechada 01
+                            f"{tipo_label} {q_num} - Aula {a_raw}",      # Fechada 01 - Aula 20 (sem zero)
+                            f"Aula {a_raw} - {tipo_label} {q_num}",      # Aula 20 - Fechada 01 (sem zero)
+                        ]
+                    else:
+                        q._search_variants = [q.nome]
                             
                     questoes.append(q)
                 
@@ -85,27 +98,25 @@ class Orchestrator:
             
             for q in questoes:
                 res = ResultadoValidacao(questao_id=q.id, questao_nome=q.nome, tipo=q.tipo)
+                variants = getattr(q, '_search_variants', [q.nome])
                 logger.info(f"-- Processando [{q.id}] {q.nome} --")
                 try:
-                    # 1. Busca a questao
-                    btn_prev = actions.buscar_questao(q.nome, course_id=self.course_id)
-                    if not btn_prev:
-                        res.erro_execucao = "Botao preview não encontrado na tela. A questão existe na pag 1?"
+                    # 1. Busca a questao (agora retorna URL string, nao locator)
+                    preview_url = actions.buscar_questao(
+                        q.nome, 
+                        search_variants=variants,
+                        course_id=self.course_id
+                    )
+                    if not preview_url:
+                        res.erro_execucao = "Questao nao encontrada no banco. Verifique nome/categoria."
                         res.status_estrutura = "FALHOU"
                         logger.warning(res.erro_execucao)
                         resultados.append(res)
                         continue
                         
-                    # Abre Aba preview real ignorando bugs de JS do Moodle
-                    preview_url = btn_prev.get_attribute("href")
-                    if preview_url and "preview.php" in preview_url:
-                        pg_preview = client.context.new_page()
-                        pg_preview.goto(preview_url)
-                    else:
-                        with client.context.expect_page() as new_page_info:
-                            btn_prev.click(force=True)
-                        pg_preview = new_page_info.value
-                        
+                    # Abre aba de preview diretamente via URL
+                    pg_preview = client.context.new_page()
+                    pg_preview.goto(preview_url)
                     pg_preview.wait_for_load_state("load")
                     
                     # Salva status cru original
@@ -126,7 +137,7 @@ class Orchestrator:
 
                     # 4. Teste Funcional (Acerto e Erro)
                     if q.tipo == "aberta":
-                        logger.info(" -> Questão Aberta Identificada. Pulando o clique de respostas.")
+                        logger.info(" -> Questao Aberta Identificada. Pulando o clique de respostas.")
                         res.status_funcional = "IGNORADO"
                         pg_preview.close()
                         resultados.append(res)
@@ -143,7 +154,7 @@ class Orchestrator:
                         res.screenshot_correta = self.ss_manager.take(pg_preview, f"{q.id}_02_corr")
                         
                         if not check_feedback_ok(pg_preview):
-                            res.adicionar_divergencia("Feedback Visual não retornou classe de 'Acerto' no Moodle.")
+                            res.adicionar_divergencia("Feedback Visual nao retornou classe de 'Acerto' no Moodle.")
                             res.status_funcional = "FALHOU"
 
                         actions.reiniciar_tentativa(pg_preview)
@@ -157,7 +168,7 @@ class Orchestrator:
                         res.screenshot_errada = self.ss_manager.take(pg_preview, f"{q.id}_03_err")
                         
                         if not check_feedback_erro(pg_preview):
-                            res.adicionar_divergencia("Feedback Visual não retornou classe de 'Erro' no Moodle.")
+                            res.adicionar_divergencia("Feedback Visual nao retornou classe de 'Erro' no Moodle.")
                             res.status_funcional = "FALHOU"
                             
                     pg_preview.close()
