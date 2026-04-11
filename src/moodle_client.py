@@ -46,6 +46,14 @@ class MoodleClient:
             # 2. Permite interações dentro do Popup de Visualização da questão (TENTATIVAS)
             if "question/preview.php" in url:
                 return route.continue_()
+                
+            # 3. Permite os AJAX Inofensivos do Moodle (que buscam blocos, recentes, etc) pra não quebrar a UI
+            if "lib/ajax/service.php" in url:
+                return route.continue_()
+                
+            # 4. Evita bloquear silenciosamente extensões de segurança do usuário (Kaspersky)
+            if "kaspersky-labs.com" in url:
+                return route.continue_()
 
         # BLOQUEIA ESTUDOS, DELETES, SALVAMENTOS NO BANCO ETC
         logger.warning(f"🛡️ GUARDRAIL ATIVADO: Bloqueou alteração externa forçada ({method} {url})")
