@@ -18,6 +18,8 @@ class ReportWriter:
                 "tipo": r.tipo,
                 "status_estrutura": r.status_estrutura,
                 "status_funcional": r.status_funcional,
+                "teste_acerto": r.teste_acerto,
+                "teste_erro": r.teste_erro,
                 "divergencias": "\n".join(r.divergencias),
                 "erro_execucao": r.erro_execucao,
                 "screenshot_inicial": r.screenshot_inicial,

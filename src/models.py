@@ -34,6 +34,8 @@ class ResultadoValidacao:
     tipo: str
     status_estrutura: str = "PENDENTE"
     status_funcional: str = "PENDENTE"
+    teste_acerto: str = "PENDENTE"
+    teste_erro: str = "PENDENTE"
     divergencias: List[str] = field(default_factory=list)
     erro_execucao: str = ""
     screenshot_inicial: str = ""

@@ -69,12 +69,14 @@ class Orchestrator:
                         
                         # Nome principal (formato mais comum no Moodle)
                         q.nome = f"{tipo_label} {q_num} - Aula {a_num}"
-                        # Todas as variantes possiveis para busca
+                        # O Moodle da Fundace também pode ter variaveis sem número específico ou formatos mistos
                         q._search_variants = [
                             f"{tipo_label} {q_num} - Aula {a_num}",      # Fechada 01 - Aula 20
                             f"Aula {a_num} - {tipo_label} {q_num}",      # Aula 20 - Fechada 01
                             f"{tipo_label} {q_num} - Aula {a_raw}",      # Fechada 01 - Aula 20 (sem zero)
                             f"Aula {a_raw} - {tipo_label} {q_num}",      # Aula 20 - Fechada 01 (sem zero)
+                            f"Aula {a_num} - {tipo_label}",              # Aula 20 - Fechada (sem numero de questao)
+                            f"Aula {a_raw} - {tipo_label}",              # Aula 20 - Fechada
                         ]
                     else:
                         q._search_variants = [q.nome]
@@ -139,6 +141,8 @@ class Orchestrator:
                     if q.tipo == "aberta":
                         logger.info(" -> Questao Aberta Identificada. Pulando o clique de respostas.")
                         res.status_funcional = "IGNORADO"
+                        res.teste_acerto = "IGNORADO"
+                        res.teste_erro = "IGNORADO"
                         pg_preview.close()
                         resultados.append(res)
                         continue
@@ -153,11 +157,17 @@ class Orchestrator:
                         actions.submeter_resposta(pg_preview)
                         res.screenshot_correta = self.ss_manager.take(pg_preview, f"{q.id}_02_corr")
                         
-                        if not check_feedback_ok(pg_preview):
-                            res.adicionar_divergencia("Feedback Visual nao retornou classe de 'Acerto' no Moodle.")
+                        if check_feedback_ok(pg_preview):
+                            res.teste_acerto = "PASSOU"
+                        else:
+                            res.teste_acerto = "FALHOU"
+                            res.adicionar_divergencia("O sistema não acusou a reposta oficial do JSON como CORRETA na tela.")
                             res.status_funcional = "FALHOU"
 
                         actions.reiniciar_tentativa(pg_preview)
+                    else:
+                        res.teste_acerto = "FALHOU"
+                        res.adicionar_divergencia("Não achou texto da correta para clicar.")
                     
                     # Achar alternativa errada para teste Incorreto
                     errs = [a.texto for a in q.alternativas if a.chave not in q.resposta_correta]
@@ -167,9 +177,15 @@ class Orchestrator:
                         actions.submeter_resposta(pg_preview)
                         res.screenshot_errada = self.ss_manager.take(pg_preview, f"{q.id}_03_err")
                         
-                        if not check_feedback_erro(pg_preview):
-                            res.adicionar_divergencia("Feedback Visual nao retornou classe de 'Erro' no Moodle.")
+                        if check_feedback_erro(pg_preview):
+                            res.teste_erro = "PASSOU"
+                        else:
+                            res.teste_erro = "FALHOU"
+                            res.adicionar_divergencia("O sistema não acusou a alternativa erronêa como INCORRETA.")
                             res.status_funcional = "FALHOU"
+                    else:
+                        res.teste_erro = "FALHOU"
+                        res.adicionar_divergencia("Não achou errada para testar erro.")
                             
                     pg_preview.close()
 
