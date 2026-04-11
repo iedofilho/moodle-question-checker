@@ -6,7 +6,7 @@ from .logger_config import get_logger
 from .schema_validator import validar_questoes_json
 from .models import Questao, ResultadoValidacao
 from .moodle_client import MoodleClient
-from .moodle_actions import MoodleActions
+from .moodle_actions_refined import MoodleActions
 from .moodle_extractors import extract_texto_enunciado, extract_alternativas, check_feedback_ok, check_feedback_erro
 from .comparator import Comparator
 from .screenshot_manager import ScreenshotManager
@@ -119,7 +119,7 @@ class Orchestrator:
                     # Abre aba de preview diretamente via URL
                     pg_preview = client.context.new_page()
                     pg_preview.goto(preview_url)
-                    pg_preview.wait_for_load_state("load")
+                    actions._wait_preview_ready(pg_preview)
                     
                     # Salva status cru original
                     res.screenshot_inicial = self.ss_manager.take(pg_preview, f"{q.id}_01_init")
