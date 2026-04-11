@@ -1,13 +1,16 @@
 # Instruções para o Usuário - Como Validar Suas Questões
 
-Bem-vindo ao **Moodle Question Checker**. Esse robô foi projetado para atuar como o "seu assistente de revisão" automático. Ele abrirá o seu Moodle e testará como os alunos verão uma determinada questão, tirando "prints" ao longo do caminho.
+Bem-vindo ao **Moodle Question Checker**. Esse robô foi projetado para atuar como o seu revisor automático silencioso para auditoria de questões no portal Moodle da Fundace. Ele testa ativamente se alunos teriam falhas visuais em uma prova.
 
-**Passo a passo rápido:**
-1. Descreva as questões com o auxílio do ChatGPT convertendo do seu Word para `.json` (veja `PROMPT_WORD_PARA_JSON.md`).
-2. Cole essas questões geradas no arquivo `input/questoes.json`.
-3. Preencha o arquivo `.env` com a sua senha e usuário do Moodle (clique com botão direito e use um bloco de notas para editar).
-4. Dê um duplo clique no arquivo `run_check.bat`. Você verá uma janela escura de comando e em seguida um navegador abrindo magicamente!
-5. **Nesta tela do navegador**, o robô irá pausar. Faça o seu login manualmente enquanto ele aguarda! Assim que você logar, ele recomeça.
-6. Ao fechar, você verá avisos na sua tela e um relatório completíssimo dentro da pasta `output/`, incluindo também todos os screenshots tomados durante os acertos/erros processados.
+**Passo a passo rápido de uso diário:**
+1. Converta as suas provas usando Inteligência Artificial para gerar um currículo bruto em `.xml` (Padrão Moodle XML) ou `.json`.
+2. Solte **um** desses dois arquivos dentro da pasta `input/`, excluindo os testes antigos de lá. Esse passo garante sua base de dados atualizada.
+3. Dê um duplo clique no arquivo executável **`run_check.bat`**. 
+4. A tela preta de prompt exigirá o **ID numérico do curso** que essa prova vai adentrar (Ex: Para matemática `http.../course/view.php?id=38`, você digitaria puramente `38`).
+5. Logo após colocar o número e dar enter, o sistema pulará visualizando um Navegador virgem já cravado na página de login da Fundace.
+6. **Escreva ali o seu login presencialmente**. Ao confirmar e atingir a área "Meu Painel", a mágica automatizada acontece. Pode tirar as mãos.
+7. O robô varre, acerta, erra propositalmente, guarda "Prints" e tabula se a sintaxe inteira confere contra os enunciados reais da Fundace até acabar a carga horária de perguntas.
+8. Visualize a apuração dentro da pasta `output/relatorio_validacao.xlsx`.
 
-Se os botões ou páginas do seu Moodle estiverem um pouco diferentes do que o app espera, consulte `COMO_MAPEAR_SELETORES.md`.
+
+Ficou na dúvida de por que uma questão apresentou problemas no layout ou o script reclamou não achar os botões de avançar? Tente consultar o aviso de documentação chamado `COMO_MAPEAR_SELETORES.md`.
