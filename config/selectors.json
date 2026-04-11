@@ -7,18 +7,19 @@
     "question_bank": {
         "search_input": "input[name='questionname']",
         "search_button": "button[type='submit']",
-        "preview_action_icon": "a[title*='ré-visualiza'], a[title*='review'], a:has-text('Ver prévia'), a[href*='preview.php']",
-        "question_row": "tr.r0, tr.r1, tr[data-region='question-row'], tr.question-row"
+        "preview_action_icon": "a[href*='preview.php']",
+        "question_row": "table tbody tr"
     },
     "preview_window": {
         "question_text": ".qtext",
-        "answer_options_container": ".answer",
-        "answer_option": ".d-flex.w-100",
-        "option_label": "label",
-        "option_input": "input[type='radio'], input[type='checkbox']",
-        "submit_button": "input[value='Enviar e finalizar'], input[value='Submit and finish']",
-        "start_again_button": "input[value='Começar de novo'], input[value='Start again']",
-        "feedback_correct_area": ".specificfeedback",
+        "answer_container": ".answer",
+        "answer_row": ".answer .r0, .answer .r1",
+        "answer_label": "[data-region='answer-label']",
+        "answer_text": ".flex-fill",
+        "option_radio": "input[type='radio']",
+        "submit_button": "input[name='finish']",
+        "start_again_button": "input[name='restart']",
+        "feedback_correct_area": ".specificfeedback, .correct",
         "grade_area": ".grade"
     }
 }

@@ -1,74 +1,77 @@
-from playwright.sync_api import Page, ElementHandle
+from playwright.sync_api import Page
 from typing import List, Dict
-from .config_loader import get_selectors
 from .logger_config import get_logger
 
 logger = get_logger(__name__)
 
 def extract_texto_enunciado(page: Page) -> str:
     """Extrai o texto do enunciado da questão na página de preview."""
-    # Tenta varios seletores comuns do Moodle
-    for sel in [".qtext", ".formulation .qtext", ".formulation p", ".que .content .formulation"]:
-        if page.locator(sel).count() > 0:
-            return page.locator(sel).first.inner_text()
+    # Seletor confirmado pelo HTML real: div.qtext
+    if page.locator(".qtext").count() > 0:
+        return page.locator(".qtext").first.inner_text()
     return ""
 
 def extract_alternativas(page: Page) -> List[Dict[str, str]]:
-    """Extrai lista de alternativas da preview de questão do Moodle."""
+    """Extrai lista de alternativas da preview de questão do Moodle.
+    
+    Estrutura HTML real da Fundace (Moodle 4+ / Lambda2):
+    <div class="answer">
+      <div class="r0">
+        <input type="radio" ... />
+        <div class="d-flex w-auto" data-region="answer-label">
+          <span class="answernumber">a. </span>
+          <div class="flex-fill ms-1">Texto da alternativa</div>
+        </div>
+      </div>
+      ...
+    </div>
+    """
     alts = []
     
-    # Estrategia 1: Labels dentro de .answer (padrão mais universal)
-    labels = page.locator(".answer label, .answeroptions label").all()
-    if labels:
-        for lbl in labels:
-            text = lbl.inner_text().strip()
-            if text:
-                alts.append({"texto_moodle": text})
-        if alts:
-            return alts
-    
-    # Estrategia 2: Divs com classe d-flex dentro de .answer
-    options = page.locator(".answer .d-flex, .answer > div").all()
-    for opt in options:
-        text = opt.inner_text().strip()
-        if text:
-            alts.append({"texto_moodle": text})
-    if alts:
-        return alts
-            
-    # Estrategia 3: Qualquer input radio/checkbox com texto proximo
-    radios = page.locator("input[type='radio'], input[type='checkbox']").all()
-    for radio in radios:
-        parent = radio.locator("..")
-        text = parent.inner_text().strip()
+    # Cada alternativa vive dentro de .r0 ou .r1 na div .answer
+    rows = page.locator(".answer .r0, .answer .r1").all()
+    for row in rows:
+        # O texto limpo da alternativa (sem a letra "a. ", "b. " etc) mora em .flex-fill
+        text_el = row.locator(".flex-fill")
+        if text_el.count() > 0:
+            text = text_el.first.inner_text().strip()
+        else:
+            # Fallback: pegar o label inteiro
+            label_el = row.locator("[data-region='answer-label']")
+            text = label_el.first.inner_text().strip() if label_el.count() > 0 else row.inner_text().strip()
+        
         if text:
             alts.append({"texto_moodle": text})
     
     return alts
 
 def check_feedback_ok(page: Page) -> bool:
-    """Verifica se o Moodle sinalizou resposta correta."""
-    # Checa classes visuais de acerto
-    if page.locator(".correct, .state.correct, .specificfeedback").count() > 0:
-        texto_feedback = page.locator(".correct, .state, .specificfeedback, .grade").all_inner_texts()
-        texto_junto = " ".join(texto_feedback).lower()
-        if any(w in texto_junto for w in ["correta", "correto", "certo", "correct", "100"]):
-            return True
-    
-    # Fallback visual: ícone de check
-    if page.locator("i.fa-check, .icon.fa-check").count() > 0:
+    """Verifica se o Moodle sinalizou resposta correta após submissão."""
+    # Classe .correct aparece no div da questão quando a resposta é certa
+    if page.locator(".correct").count() > 0:
         return True
+    # Texto de feedback
+    if page.locator(".specificfeedback").count() > 0:
+        texto = page.locator(".specificfeedback").first.inner_text().lower()
+        if any(w in texto for w in ["correta", "correto", "certo", "correct"]):
+            return True
+    # Nota máxima no grade area
+    if page.locator(".grade").count() > 0:
+        grade_text = page.locator(".grade").first.inner_text()
+        if "1,00" in grade_text or "1.00" in grade_text:
+            return True
     return False
 
 def check_feedback_erro(page: Page) -> bool:
-    """Verifica se o Moodle sinalizou resposta incorreta."""
-    if page.locator(".incorrect, .state.notcorrect, .specificfeedback").count() > 0:
-        texto_feedback = page.locator(".incorrect, .state, .specificfeedback, .grade").all_inner_texts()
-        texto_junto = " ".join(texto_feedback).lower()
-        if any(w in texto_junto for w in ["incorreta", "incorreto", "errado", "incorrect", "0,00", "0.00"]):
-            return True
-    
-    # Fallback visual: ícone de X
-    if page.locator("i.fa-times, i.fa-xmark, .icon.fa-remove").count() > 0:
+    """Verifica se o Moodle sinalizou resposta incorreta após submissão."""
+    if page.locator(".incorrect").count() > 0:
         return True
+    if page.locator(".specificfeedback").count() > 0:
+        texto = page.locator(".specificfeedback").first.inner_text().lower()
+        if any(w in texto for w in ["incorreta", "incorreto", "errado", "incorrect"]):
+            return True
+    if page.locator(".grade").count() > 0:
+        grade_text = page.locator(".grade").first.inner_text()
+        if "0,00" in grade_text or "0.00" in grade_text:
+            return True
     return False
