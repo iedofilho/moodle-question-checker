@@ -9,3 +9,4 @@ output/*
 
 # NUNCA sobe as questoes reais para o GitHub
 input/*.json
+input/*.xml

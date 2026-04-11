@@ -24,18 +24,25 @@ class Orchestrator:
         logger.info("Orquestrador inicializado.")
         
     def run(self):
-        # 1. Carregar e Validar JSON
+        # 1. Carregar Arquivo XML
         base_dir = get_project_root()
-        input_file = base_dir / self.settings["directories"]["input"] / "questoes.json"
+        input_dir = base_dir / self.settings["directories"]["input"]
+        xml_files = list(input_dir.glob("*.xml"))
         
-        logger.info("Validando schema de entrada...")
-        valido, msg_ou_dados = validar_questoes_json(input_file)
-        if not valido:
-            logger.error(f"O JSON não atende ao schema requisitado: {msg_ou_dados}")
+        if not xml_files:
+            logger.error("Nenhum arquivo .xml encontrado na pasta input/")
             return
             
-        questoes = [Questao.do_dict(q) for q in msg_ou_dados]
-        logger.info(f"{len(questoes)} questoes mapeadas para processamento.")
+        input_file = xml_files[0]
+        logger.info(f"Convertendo arquivo XML da prova... ({input_file.name})")
+        
+        from .xml_parser import parse_moodle_xml
+        try:
+            questoes = parse_moodle_xml(input_file)
+            logger.info(f"{len(questoes)} questoes extraidas com sucesso.")
+        except Exception as e:
+            logger.error(f"Ocorreu um problema interpretando o XML: {e}")
+            return
 
         # Inicia ambiente Moodle
         client = None
@@ -84,6 +91,13 @@ class Orchestrator:
                         continue
 
                     # 4. Teste Funcional (Acerto e Erro)
+                    if q.tipo == "aberta":
+                        logger.info(" -> Questão Aberta Identificada. Pulando o clique de respostas.")
+                        res.status_funcional = "IGNORADO"
+                        pg_preview.close()
+                        resultados.append(res)
+                        continue
+                        
                     res.status_funcional = "OK"
                     
                     # Achar alternativa gabarito pra teste Correto

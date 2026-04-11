@@ -12,8 +12,8 @@ class Questao:
     nome: str
     tipo: str
     enunciado: str
-    alternativas: List[Alternativa]
-    resposta_correta: List[str]
+    alternativas: List[Alternativa] = field(default_factory=list)
+    resposta_correta: List[str] = field(default_factory=list)
 
     @classmethod
     def do_dict(cls, data: dict):

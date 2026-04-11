@@ -15,13 +15,14 @@ class Comparator:
             result.adicionar_divergencia(f"Enunciado destoa: Esperado conter '{norm_json_enunc[:30]}...'")
 
         # 2. Alternativas
-        moodle_alts_norms = [normalize_text(a["texto_moodle"]) for a in alts_moodle]
-        
-        for alt_json in q_json.alternativas:
-            norm_json_alt = normalize_text(alt_json.texto)
-            achou = any(norm_json_alt in malt for malt in moodle_alts_norms)
-            if not achou:
-                result.adicionar_divergencia(f"Alternativa não encontrada no Moodle: '{norm_json_alt}'")
+        if q_json.tipo != "aberta":
+            moodle_alts_norms = [normalize_text(a["texto_moodle"]) for a in alts_moodle]
+            
+            for alt_json in q_json.alternativas:
+                norm_json_alt = normalize_text(alt_json.texto)
+                achou = any(norm_json_alt in malt for malt in moodle_alts_norms)
+                if not achou:
+                    result.adicionar_divergencia(f"Alternativa não encontrada no Moodle: '{norm_json_alt}'")
         
         if len(result.divergencias) == 0:
             result.status_estrutura = "OK"
